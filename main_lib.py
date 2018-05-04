@@ -114,9 +114,6 @@ def mtrxAdd(*mats):
                 mtrxRslt.arr[rowNum] = vectSum(mtrxRslt.arr[rowNum], list(mats)[mtrxNum].arr[rowNum])
     return mtrxRslt
 
-
-
-
 def scalarMult(matrix, coeff):
     for row in range(1, matrix.getColDim()+1):
         matrix.mult(row, coeff)
@@ -138,7 +135,8 @@ def transpose(matrix):
 
     return Matrix(strList)
 
-def matMult(mtrxA, mtrxB): #Can only work with two matrices so far
+def matMult(mtrxA, mtrxB): #Will only work with two matrices and will serve as part of a function that can take an infinite amount of matrices
+    # #FIX MEEEE!!!! Problem: Some column vectors are 0
     if mtrxA.getRowDim() == mtrxB.getColDim():
         matRslt = genNullMtrx(mtrxA.getColDim(), mtrxB.getRowDim())
         for rowNum in range(1, matRslt.getColDim()+1):
@@ -150,6 +148,42 @@ def matMult(mtrxA, mtrxB): #Can only work with two matrices so far
 
     return matRslt
 
+def trace(mtrx):
+    if mtrx.getRowDim() == mtrx.getColDim():
+        trace = 0
+        for i in range(1,mtrx.getRowDim()+1):
+            trace += mtrx.getEntry(i,i)
+    return trace
 
+def chngPivot(i=1,j=1, i_new = 0, j_new = 0):
+    return i + i_new, j + j_new
 
+def entryCheck(mtrx,i,j):
+    return mtrx.getEntry(i,j) == 0
 
+def elimPrtcl(mtrx,i,j): #what to do when pivot isn't 0
+    rowList = list(range(1,mtrx.getColDim()+1))
+    rowList.__delitem__(i-1)
+    mtrx.mult(i,1/mtrx.getEntry(i,j))
+    for rowNum in rowList:
+        mtrx.addNTimes(rowNum,i, - (mtrx.getEntry(rowNum,j)/mtrx.getEntry(i,j)))
+    return i+1, j+1
+
+def swapPrtcl(mtrx,i,j): #what to do when pivot is 0
+    rowList = list(range(1, mtrx.getColDim() + 1))
+    rowList.__delitem__(i - 1)
+    for rowNum in rowList:
+        if mtrx.getEntry(rowNum,j-1) != 1:
+            mtrx.swap(i, rowNum)
+        break
+    return i,j
+
+def rref(mtrx): #Not done
+    i,j = chngPivot()
+    entry = mtrx.getEntry(i,j)
+    caseSelec = {
+        True:swapPrtcl(mtrx,i,j), #CASE 1: Pivot is equal to 0.
+        False: elimPrtcl(mtrx,i,j) #CASE 2: Pivot is a non-zero number and elimination protocol is initiated
+
+    }
+    i, j = caseSelec[entryCheck(mtrx,i,j)]

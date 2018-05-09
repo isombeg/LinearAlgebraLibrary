@@ -136,11 +136,11 @@ def transpose(matrix):
     return Matrix(strList)
 
 def matMult(mtrxA, mtrxB): #Will only work with two matrices and will serve as part of a function that can take an infinite amount of matrices
-    # #FIX MEEEE!!!! Problem: Some column vectors are 0
-    if mtrxA.getRowDim() == mtrxB.getColDim():
-        matRslt = genNullMtrx(mtrxA.getColDim(), mtrxB.getRowDim())
+  
+    if mtrxA.getRowDim() == mtrxB.getColDim(): #condition for matrix multiplication to work
+        matRslt = genNullMtrx(mtrxA.getColDim(), mtrxB.getRowDim()) #generates an appropriate sized matrix full of zeros
         for rowNum in range(1, matRslt.getColDim()+1):
-            for colNum in range(1, matRslt.getRowDim()):
+            for colNum in range(1, matRslt.getRowDim()+1):
                 entry = 0
                 for entryNum in range(1,mtrxA.getRowDim()+1):
                     entry += (mtrxA.getEntry(rowNum,entryNum) * mtrxB.getEntry(entryNum, colNum)) #slight mistale around here
@@ -155,19 +155,17 @@ def trace(mtrx):
             trace += mtrx.getEntry(i,i)
     return trace
 
-def chngPivot(i=1,j=1, i_new = 0, j_new = 0):
-    return i + i_new, j + j_new
+def chngPivot(i=1,j=1, i_new = 0, j_new = 0): return i + i_new, j + j_new
 
-def entryCheck(mtrx,i,j):
-    return mtrx.getEntry(i,j) == 0
+def entryCheck(mtrx,i,j): return mtrx.getEntry(i,j) == 0 #checks if pivot is 0 or not
 
 def elimPrtcl(mtrx,i,j): #what to do when pivot isn't 0
-    rowList = list(range(1,mtrx.getColDim()+1))
-    rowList.__delitem__(i-1)
-    mtrx.mult(i,1/mtrx.getEntry(i,j))
+    rowList = list(range(1,mtrx.getColDim()+1)) #creates list of row numbers
+    rowList.__delitem__(i-1) #delete row number of where pivot is
+    mtrx.mult(i,1/mtrx.getEntry(i,j)) #multiply row of pivot by it's inverse to make pivot 1
     for rowNum in rowList:
         mtrx.addNTimes(rowNum,i, - (mtrx.getEntry(rowNum,j)/mtrx.getEntry(i,j)))
-    return i+1, j+1
+
 
 def swapPrtcl(mtrx,i,j): #what to do when pivot is 0
     rowList = list(range(1, mtrx.getColDim() + 1))
@@ -176,14 +174,28 @@ def swapPrtcl(mtrx,i,j): #what to do when pivot is 0
         if mtrx.getEntry(rowNum,j-1) != 1:
             mtrx.swap(i, rowNum)
         break
-    return i,j
 
-def rref(mtrx): #Not done
-    i,j = chngPivot()
-    entry = mtrx.getEntry(i,j)
+
+def rref_check(*mtrx): #check if a matrix is in rref
+    boolList = []
+    for mtr in list(mtrx):
+        for col_num in range(1,len(mtr.getRowDim())):
+            onesList = []
+            zerosList = []
+            for entry in mtr.getColVec(col_num):
+                if entry == 1: onesList.append(entry)
+                elif entry == 0: zerosList.append(entry)
+            if len(onesList) == 1 or len(zerosList) == mtr.getColDim() - 1: boolList.append(True)
+            else: boolList.append(False)
+    return boolList
+
+def rref(mtrx,i=0,j=0): #Not done
+    i,j = chngPivot(i,j,1,1)
     caseSelec = {
         True:swapPrtcl(mtrx,i,j), #CASE 1: Pivot is equal to 0.
         False: elimPrtcl(mtrx,i,j) #CASE 2: Pivot is a non-zero number and elimination protocol is initiated
-
     }
-    i, j = caseSelec[entryCheck(mtrx,i,j)]
+    caseSelec[entryCheck(mtrx,i,j)] #line where either swap protocol or elimination protocol is invoked
+    if rref_check(mtrx) == [False]:
+        rref(mtrx)
+    return mtrx

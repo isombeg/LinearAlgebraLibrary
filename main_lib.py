@@ -69,11 +69,10 @@ def printMtrx(*mtrx): #prints out the matrix
         print('\n')
 
 def genNullMtrx(rowDim, colDim):
-    zero = '0 '
     rowStr = ''
     matList = []
     for elem in range(0,rowDim):
-        rowStr += zero
+        rowStr += '0 '
     for elem in range(0,colDim):
         matList.append(rowStr)
 
@@ -136,7 +135,7 @@ def transpose(matrix):
     return Matrix(strList)
 
 def matMult(mtrxA, mtrxB): #Will only work with two matrices and will serve as part of a function that can take an infinite amount of matrices
-  
+    # #FIX MEEEE!!!! Problem: Some column vectors are 0
     if mtrxA.getRowDim() == mtrxB.getColDim(): #condition for matrix multiplication to work
         matRslt = genNullMtrx(mtrxA.getColDim(), mtrxB.getRowDim()) #generates an appropriate sized matrix full of zeros
         for rowNum in range(1, matRslt.getColDim()+1):
@@ -175,27 +174,58 @@ def swapPrtcl(mtrx,i,j): #what to do when pivot is 0
             mtrx.swap(i, rowNum)
         break
 
+def oneCheck(vect): #checks if a vector has a one in it
+    for entry in vect:
+        if entry == 1:
+            return True
+    return False
+
+def soleOneCheck(vect): #checks if a vector only has a one and zeros
+    onesList = []
+    zerosList = []
+    for entry in vect:
+        if entry == 1: onesList.append(True)
+        elif entry == 0: zerosList.append(True)
+    return len(onesList) == 1 and len(zerosList) == len(vect) - 1
+
+def leadingOneCheck(vect): #checks if a row vector has a leading one
+    for entry in vect:
+        if entry == 1:
+            return True
+        elif entry != 0 and entry != 1:
+            return False
+
+
 
 def rref_check(*mtrx): #check if a matrix is in rref
-    boolList = []
+    boolList = [] #List of bools representing whether matrices are in rref or not
     for mtr in list(mtrx):
-        for col_num in range(1,len(mtr.getRowDim())):
-            onesList = []
-            zerosList = []
-            for entry in mtr.getColVec(col_num):
-                if entry == 1: onesList.append(entry)
-                elif entry == 0: zerosList.append(entry)
-            if len(onesList) == 1 or len(zerosList) == mtr.getColDim() - 1: boolList.append(True)
-            else: boolList.append(False)
+        condList = []
+        for col in transpose(mtr).arr: #FIND MORE EFFICIENT WAY
+            if oneCheck(col) == True:
+                if soleOneCheck(col) == False:
+                    condList.append(False)
+                else:
+                    condList.append(True)
+            else:
+                condList.append(True)
+        for row in mtr.arr:
+            condList.append(leadingOneCheck(row))
+
+        condList.sort()
+        boolList.append(condList[0])
     return boolList
 
-def rref(mtrx,i=0,j=0): #Not done
-    i,j = chngPivot(i,j,1,1)
-    caseSelec = {
-        True:swapPrtcl(mtrx,i,j), #CASE 1: Pivot is equal to 0.
-        False: elimPrtcl(mtrx,i,j) #CASE 2: Pivot is a non-zero number and elimination protocol is initiated
-    }
-    caseSelec[entryCheck(mtrx,i,j)] #line where either swap protocol or elimination protocol is invoked
-    if rref_check(mtrx) == [False]:
-        rref(mtrx)
+def rref(mtrx): #Not done
+    i,j = 1,1
+    while rref_check(mtrx) == [False]:
+        print("While condition cleared")
+        if entryCheck(mtrx,i,j):
+            print("Initiating Swap Protocol")
+            swapPrtcl(mtrx,i,j)
+        else:
+            print("Initiating Elimination Protocol")
+            elimPrtcl(mtrx,i,j)
+            i,j = i+1,j+1
+        printMtrx(mtrx)
     return mtrx

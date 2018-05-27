@@ -188,6 +188,12 @@ def soleOneCheck(vect): #checks if a vector only has a one and zeros
         elif entry == 0: zerosList.append(True)
     return len(onesList) == 1 and len(zerosList) == len(vect) - 1
 
+def fullZeroCheck(vect): #checks if a vector is all zeros
+    for entry in vect:
+        if entry != 0:
+            return False
+    return True
+
 def leadingOneCheck(vect): #checks if a row vector has a leading one
     for entry in vect:
         if entry == 1:
@@ -195,22 +201,29 @@ def leadingOneCheck(vect): #checks if a row vector has a leading one
         elif entry != 0 and entry != 1:
             return False
 
-
-
 def rref_check(*mtrx): #check if a matrix is in rref
     boolList = [] #List of bools representing whether matrices are in rref or not
     for mtr in list(mtrx):
+        printMtrx(mtr)
         condList = []
-        for col in transpose(mtr).arr: #FIND MORE EFFICIENT WAY
-            if oneCheck(col) == True:
-                if soleOneCheck(col) == False:
-                    condList.append(False)
-                else:
-                    condList.append(True)
-            else:
-                condList.append(True)
-        for row in mtr.arr:
-            condList.append(leadingOneCheck(row))
+        print('Verifying columns')
+        for col in transpose(mtr).arr: #Determines in which columns the leading ones are found
+            condList.append(((oneCheck(col) and soleOneCheck(col)) or fullZeroCheck(col)) )
+            print('condList: ', condList)
+
+        print('condList length:', len(condList))
+        print('Column dimension:', mtr.getColDim())
+        if len(condList) > mtr.getColDim(): #Eliminates any data from columns we needn't worry about
+            print('Eliminating useless data')
+            condList.sort()
+            for instance in range(0,len(condList)- mtr.getColDim()):
+                condList.pop(0)
+                print('condList; ', condList)
+
+        print('Verifying rows')
+        for row in mtr.arr: #Determines whether every row has leading one or is full of zeroes
+            condList.append(leadingOneCheck(row) or fullZeroCheck(row))
+            print('condList: ', condList)
 
         condList.sort()
         boolList.append(condList[0])
